@@ -1,6 +1,6 @@
-# Sample Hardhat Project
+# OctoInsure Contract
 
-This project demonstrates a basic Hardhat use case. It comes with a sample contract, a test for that contract, and a script that deploys that contract.
+This contract enables people to insure assets in a Peer-2-Peer decentralised manner
 
 Try running some of the following tasks:
 
