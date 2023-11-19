@@ -50,6 +50,8 @@ contract InsurancePolicy is IPolicy {
         uint256 _policyId,
         address _tokenAddress
     ) public payable {
+        // on adding crosshcain functionality
+        // check here for block.chainid == chainID
         require(
             block.timestamp < policyMap[_policyId].duration,
             "Policy duration has ended"
