@@ -19,7 +19,7 @@ const config: HardhatUserConfig = {
     },
     'base-goerli':{
       url: process.env.BASE_RPC_URL,
-      accounts: [accountKey],
+      accounts: [process.env.BASE_PVT_KEY as string],
     }
   },
   // find all supported networks by:
@@ -29,6 +29,7 @@ const config: HardhatUserConfig = {
     apiKey: {
       sepolia: process.env.ETHERSCAN_PRIVATE_KEY as string,
       goerli: process.env.ETHERSCAN_PRIVATE_KEY as string,
+      baseGoerli: process.env.ETHERSCAN_PRIVATE_KEY as string,
     },
   },
   paths: {

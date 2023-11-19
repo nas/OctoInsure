@@ -19,13 +19,14 @@ async function main() {
   // );
 
 
-  const lock = await ethers.deployContract("InsurancePolicy");
+  const policy = await ethers.deployContract("InsurancePolicy");
 
-  await lock.waitForDeployment();
+  await policy.waitForDeployment();
 
   console.log(
-    `ETH and unlock timestamp deployed to ${lock.target}`
+    `deployed to ${policy.target}`
   );
+
 }
 
 // We recommend this pattern to be able to use async/await everywhere
