@@ -51,7 +51,7 @@ contract InsurancePolicy is IPolicy {
         address _tokenAddress
     ) public payable {
         require(
-            block.timestamp < policies[_policyId].duration,
+            block.timestamp < policyMap[_policyId].duration,
             "Policy duration has ended"
         );
         require(_tokenAddress != address(0), "Invalid token passed");
@@ -59,7 +59,7 @@ contract InsurancePolicy is IPolicy {
         IERC20 token = IERC20(_tokenAddress);
 
         uint256 minimumAmount = policyMap[_policyId].premium *
-            policyMap[_policyId].duration;
+            policyMap[_policyId].monthlyInstallments;
 
         // Make sure the user has approved the amount before hitting this function
         // require allowance to be at least the amount being deposited
@@ -84,7 +84,7 @@ contract InsurancePolicy is IPolicy {
         );
 
         policyMap[_policyId].totalPremium += policyMap[_policyId].premium;
-        policyMap[_policyId].participants.push(msg.sender);
+        // we shuld be tracking each premium payment
 
         emit PremiumPaid(_policyId, msg.sender, msg.value);
     }
@@ -106,8 +106,8 @@ contract InsurancePolicy is IPolicy {
             (_monthlyInstallments * 24 * 60 * 60 * 30);
         newPolicy.tags = _tags;
         newPolicy.premium = _premium;
-        newPolicy.participants[0] = msg.sender;
-        policies.push(newPolicy);
+        policyMap[newPolicy.id].participants = new address[](10);
+        policyMap[newPolicy.id].participants[0] = msg.sender;
         policyMap[newPolicy.id] = newPolicy;
 
         payPremium(newPolicy.id, _tokenAddress);

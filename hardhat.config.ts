@@ -17,6 +17,10 @@ const config: HardhatUserConfig = {
       url: process.env.SEPOLIA_RPC_URL,
       accounts: [accountKey],
     },
+    'base-goerli':{
+      url: process.env.BASE_RPC_URL,
+      accounts: [accountKey],
+    }
   },
   // find all supported networks by:
   // npx hardhat verify --list-networks
