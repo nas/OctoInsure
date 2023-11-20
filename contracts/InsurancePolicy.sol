@@ -22,6 +22,7 @@ import {IERC20} from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 import {SafeERC20} from "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
 
 contract InsurancePolicy is IPolicy {
+    uint256 MAX_PARTICIPANT_PER_POLICY = 100;
     // policyId => claims
     mapping(uint256 => Claim[]) private policyClaims;
 
@@ -60,8 +61,7 @@ contract InsurancePolicy is IPolicy {
 
         IERC20 token = IERC20(_tokenAddress);
 
-        uint256 minimumAmount = policyMap[_policyId].premium *
-            policyMap[_policyId].monthlyInstallments;
+        uint256 minimumAmount = policyMap[_policyId].premium;
 
         // Make sure the user has approved the amount before hitting this function
         // require allowance to be at least the amount being deposited
@@ -72,6 +72,7 @@ contract InsurancePolicy is IPolicy {
         );
 
         // require users balance to be greater than or equal to the _amount
+        console.log(token.balanceOf(msg.sender));
         require(
             token.balanceOf(msg.sender) >= minimumAmount,
             "Insufficient token balance"
@@ -86,9 +87,23 @@ contract InsurancePolicy is IPolicy {
         );
 
         policyMap[_policyId].totalPremium += policyMap[_policyId].premium;
+        policyMap[_policyId].remainingPayout += policyMap[_policyId].premium;
+        console.log(policyMap[_policyId].remainingPayout);
         // we shuld be tracking each premium payment
 
         emit PremiumPaid(_policyId, msg.sender, msg.value);
+    }
+
+    function policyTags(
+        uint256 _policyId
+    ) external view returns (string[] memory) {
+        return policyMap[_policyId].tags;
+    }
+
+    function policyParticipants(
+        uint256 _policyId
+    ) external view returns (address[] memory) {
+        return policyMap[_policyId].participants;
     }
 
     function createPolicy(
@@ -99,7 +114,7 @@ contract InsurancePolicy is IPolicy {
         uint256 _premium
     ) external {
         Policy memory newPolicy;
-        newPolicy.id = counter++;
+        newPolicy.id = ++counter;
         newPolicy.owner = msg.sender;
         newPolicy.name = _name;
         newPolicy.monthlyInstallments = _monthlyInstallments;
@@ -108,13 +123,15 @@ contract InsurancePolicy is IPolicy {
             (_monthlyInstallments * 24 * 60 * 60 * 30);
         newPolicy.tags = _tags;
         newPolicy.premium = _premium;
-        policyMap[newPolicy.id].participants = new address[](10);
-        policyMap[newPolicy.id].participants[0] = msg.sender;
+        newPolicy.remainingPayout = _premium;
+        newPolicy.participants = new address[](MAX_PARTICIPANT_PER_POLICY);
+        newPolicy.participants[0] = msg.sender;
         policyMap[newPolicy.id] = newPolicy;
 
         payPremium(newPolicy.id, _tokenAddress);
+        policies.push(newPolicy);
         emit PolicyCreated(
-            policies.length - 1,
+            newPolicy.id,
             msg.sender,
             _name,
             _monthlyInstallments,
@@ -124,11 +141,11 @@ contract InsurancePolicy is IPolicy {
 
     function submitClaim(uint256 _policyId, uint256 _amount) external {
         require(
-            block.timestamp < policies[_policyId].duration,
+            block.timestamp < policyMap[_policyId].duration,
             "Policy duration has ended"
         );
         require(
-            _amount > 0 && _amount <= policies[_policyId].remainingPayout,
+            _amount > 0 && _amount < policyMap[_policyId].remainingPayout,
             "Invalid claim amount"
         );
 
